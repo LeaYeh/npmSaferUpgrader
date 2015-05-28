@@ -1,7 +1,7 @@
 {
   "name": "npmSaferUpdate",
   "author": "PeterDaveHello",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "dependencies": {
     "colors": "1.1.0",
     "compare-version": "^0.1.1",
