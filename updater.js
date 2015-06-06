@@ -6,6 +6,7 @@ var request = require('request');
 var colors = require('colors');
 var cmpVer = require('compare-version');
 var spawn = require('child_process').spawn;
+var msg;
 
 colors.setTheme({
   prompt: 'cyan',
@@ -15,21 +16,43 @@ colors.setTheme({
   error: 'red'
 });
 
-pkgReadIn = fs.readFileSync("package.json", {encoding:'utf8'});
-pkg = JSON.parse(pkgReadIn);
+function updateLib(libName, currentVer, versions) {
+  while (isNaN(currentVer[0])) {
+    currentVer = currentVer.substr(1);
+  }
+  var currentIndexInVers = versions.lastIndexOf(currentVer);
+  if (currentIndexInVers === -1) {
+    console.log(colors.error("Can not recognize version: " + currentVer));
+    return;
+    //version not 100% match, should find the closest instead
+    //currentIndexInVers = findRelatedVer(currentVer, versions);
+  }
+  var start = currentIndexInVers;
+  var end = versions.length - 1;
+  while (start !== end) {
+    start = end; //temporarily fake statement, should be replaced by the binary version search algorithm
+  }
+  var newVer = versions[start];
+  return newVer;
+}
 
-depCount = Object.keys(pkg.dependencies).length;
 
-msg = "Try to upgrade the dependencies of " + pkg.name + ' version ' + pkg.version + ' in safer method!\n'
+var pkgReadIn = fs.readFileSync("package.json", {encoding: 'utf8'});
+var pkg = JSON.parse(pkgReadIn);
+
+var depCount = Object.keys(pkg.dependencies).length;
+
+msg = "Try to upgrade the dependencies of " + pkg.name + ' version ' + pkg.version + ' in safer method!\n';
 console.log(msg.prompt);
-msg = "Found " + depCount + (depCount ? ' dependencies :' : ' dependency')
+msg = "Found " + depCount + (depCount ? ' dependencies :' : ' dependency');
 console.log(msg.prompt);
 
-deps = [];
-depsVer = [];
+var deps = [];
+var depsVer = [];
 
 //Should also handle devDependencies in future
 if (depCount) {
+  var dep;
   for (dep in pkg.dependencies) {
     console.log(colors.info(' - ' + dep + ': ') + colors.bold(pkg.dependencies[dep]));
     deps.push(dep);
@@ -43,24 +66,25 @@ function checkVer(lib, version) {
   request.get('http://registry.npmjs.org/' + lib, function (error, response, body) {
     msg = "\nChecking verion of " + lib + ", current: ";
     console.log(msg.prompt + colors.yellow(version));
-    if (!error && response.statusCode == 200) {
-      versions = [];
-      temp = JSON.parse(body).versions;
+    if (!error && response.statusCode === 200) {
+      var versions = [],
+        temp = JSON.parse(body).versions,
+        ver;
       for (ver in temp) {
         versions.push(ver);
       }
       console.log("versions: ".prompt + colors.bold(versions));
-      console.log("The latest version: ".prompt + colors.bold(versions[versions.length-1]));
-      needUpdate = (cmpVer(versions[versions.length-1], version) > 0 ? true : false);
+      console.log("The latest version: ".prompt + colors.bold(versions[versions.length - 1]));
+      var needUpdate = (cmpVer(versions[versions.length - 1], version) > 0 ? true : false);
       console.log(colors.info((needUpdate ? colors.bold("Need") : "No need") + " to update!"));
       if (needUpdate) {
-        newVer = updateLib(lib, version, versions);
+        var newVer = updateLib(lib, version, versions);
         pkg.dependencies[lib] = newVer;
         /* bad implement ... for prototype only npm install start */
-        npmInstall = spawn('npm', ['install', lib + '@' + newVer , '--save']);
+        var npmInstall = spawn('npm', ['install', lib + '@' + newVer, '--save']);
         npmInstall.on('close', function (code) {
           if (!code) {
-            npmUpdate = spawn('npm', ['update', lib]);
+            var npmUpdate = spawn('npm', ['update', lib]);
             npmUpdate.on('close', function (code2) {
               if (!code2) {
                 msg = "Dependency - " + lib + " upgaded to v" + newVer + " successfully!";
@@ -68,7 +92,7 @@ function checkVer(lib, version) {
                 msg = "Dependency - " + lib + " v" + newVer + " has been installed, but update process failed! " + code2;
               }
               console.log(colors.prompt(msg));
-            })
+            });
           } else {
             console.log(colors.error("Dependency - " + lib + " upgrade failed! exit code: " + code));
             console.log(colors.error("This may not make sense 'cause this is just the final step, please open an issue on GitHub"));
@@ -86,33 +110,8 @@ function checkVer(lib, version) {
         })*/
       }
     }
-  })
-};
-
-
-function updateLib(libName, currentVer, versions)
-{
-  while (isNaN(currentVer[0])) {
-    currentVer = currentVer.substr(1);
-  }
-  currentIndexInVers = versions.lastIndexOf(currentVer);
-  if (currentIndexInVers == -1) {
-    console.log(colors.error("Can not recognize version: " + currentVer));
-    return;
-    //version not 100% match, should find the closest instead
-    //currentIndexInVers = findRelatedVer(currentVer, versions);
-  }
-  start = currentIndexInVers;
-  end = versions.length - 1;
-  while (start != end) {
-    start = end; //temporarily fake statement, should be replaced by the binary version search algorithm
-  }
-  newVer = versions[start];
-  return newVer;
-
+  });
 }
-
-function findRelatedVer(currentVer, versions)
-{
+function findRelatedVer(currentVer, versions) {
 //  cmpVer(currentVer,)
 }
