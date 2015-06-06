@@ -2,6 +2,9 @@
   "name": "npmSaferUpdate",
   "author": "PeterDaveHello",
   "version": "0.0.0",
+  "scripts": {
+    "pretest": "node_modules/jslint/bin/jslint.js '**/*.js'"
+  },
   "dependencies": {
     "colors": "1.1.0",
     "compare-version": "^0.1.1",
