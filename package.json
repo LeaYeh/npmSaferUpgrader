@@ -2,6 +2,7 @@
   "name": "npmSaferUpdate",
   "author": "PeterDaveHello",
   "version": "0.0.0",
+  "main": "updater.js",
   "scripts": {
     "pretest": "node_modules/jslint/bin/jslint.js '**/*.js'"
   },
