@@ -75,6 +75,8 @@ function checkVer(lib, version) {
       }
       console.log("versions: ".prompt + colors.bold(versions));
       console.log("The latest version: ".prompt + colors.bold(versions[versions.length - 1]));
+      /*Binary Version search*/
+      BinaryVersearch(version, versions);
       var needUpdate = (cmpVer(versions[versions.length - 1], version) > 0 ? true : false);
       console.log(colors.info((needUpdate ? colors.bold("Need") : "No need") + " to update!"));
       if (needUpdate) {
@@ -114,4 +116,38 @@ function checkVer(lib, version) {
 }
 function findRelatedVer(currentVer, versions) {
 //  cmpVer(currentVer,)
+}
+function BinaryVersearch(Version, Versions) {
+  msg = "The most appropriate version: ";
+  pos = 0;
+  for(i = 0; i < Versions.length ; i++) {
+    if(Version == Versions[i] || Version == "~"+Versions[i]) {
+      pos = i;
+      break;
+    }
+  }
+  if (Versions.length > 1 && Version) {
+    if (testifcompatible()) {
+      Ver = Versions[Math.ceil((pos + Versions.length-1) / 2)];
+      for(i = 0; i < Versions.length; i++) {
+        if(i == pos) {
+          break;
+        }
+        Versions.shift();
+      }
+      BinaryVersearch(Ver,Versions);
+    } else {
+        console.log(msg.prompt + Version);
+      }
+  } else {
+      console.log(msg.prompt + Version);
+    }
+}
+function testifcompatible() {
+  y = 1;
+  if (y) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
