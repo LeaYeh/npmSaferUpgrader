@@ -6,6 +6,7 @@ var request = require('request');
 var colors = require('colors');
 var cmpVer = require('compare-version');
 var spawn = require('child_process').spawn;
+var exec = require('child_process').exec;
 var msg;
 
 colors.setTheme({
@@ -115,3 +116,34 @@ function checkVer(lib, version) {
 function findRelatedVer(currentVer, versions) {
 //  cmpVer(currentVer,)
 }
+
+/*
+* script  : which you want to run on shell
+* cb      : callback function, need 1 argu
+*           and will assign it the state of script (pass:0, fail:1)
+* example :
+*  checkTest(pkg.script, function(res) {
+*    console.log(res)
+*  }
+*/
+function checkTest(script, cb) {
+  exec(script, function (error, stdout, stderr) {
+      //console.log('stdout: ' + stdout);
+      //console.log('stderr: ' + stderr);
+      if (error !== null) {
+        console.log('exec error: ' + error);
+        return cb(1);
+      }
+      exec("echo $?", function (error, stdout, stderr) {
+          console.log('stdout: ' + stdout)
+          if (stdout == 0) {
+            return cb(0);
+          } else {
+            return cb(1);
+          }
+        }
+      );
+    }
+  );
+}
+
