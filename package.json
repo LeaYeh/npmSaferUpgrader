@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "main": "updater.js",
   "scripts": {
-    "pretest": "node_modules/jslint/bin/jslint.js '**/*.js'"
+    "pretest": "node_modules/jslint/bin/jslint.js '*.js'"
   },
   "dependencies": {
     "colors": "1.1.0",
