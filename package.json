@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "main": "updater.js",
   "scripts": {
-    "pretest": "node_modules/jslint/bin/jslint.js '*.js'"
   },
   "dependencies": {
     "colors": "1.1.0",
@@ -13,7 +12,6 @@
     "request": "^2.55.0"
   },
   "devDependencies": {
-    "jslint": ">=0.7"
   },
   "license": "GPL3"
 }
