@@ -50,16 +50,6 @@ console.log(msg.prompt);
 var deps = [];
 var depsVer = [];
 
-//Should also handle devDependencies in future
-if (depCount) {
-  var dep;
-  for (dep in pkg.dependencies) {
-    console.log(colors.info(' - ' + dep + ': ') + colors.bold(pkg.dependencies[dep]));
-    deps.push(dep);
-    depsVer.push(pkg.dependencies[dep]);
-    checkVer(dep, pkg.dependencies[dep]);
-  }
-}
 
 function checkVer(lib, version) {
   version = pkg.dependencies[lib];
@@ -114,4 +104,15 @@ function checkVer(lib, version) {
 }
 function findRelatedVer(currentVer, versions) {
 //  cmpVer(currentVer,)
+}
+
+//Should also handle devDependencies in future
+if (depCount) {
+  var dep;
+  for (dep in pkg.dependencies) {
+    console.log(colors.info(' - ' + dep + ': ') + colors.bold(pkg.dependencies[dep]));
+    deps.push(dep);
+    depsVer.push(pkg.dependencies[dep]);
+    checkVer(dep, pkg.dependencies[dep]);
+  }
 }
