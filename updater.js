@@ -116,3 +116,43 @@ if (depCount) {
     checkVer(dep, pkg.dependencies[dep]);
   }
 }
+
+function testLibVersion(lib, version) {
+  npm.load("", function (er) {
+    var module = null;
+
+    if (er) {
+      /* loading error */
+      console.log(er);
+    }
+    npm.commands.install([module, ""], function (er, data) {
+      /*
+      *  install module succeeded, then go testing.
+      *  otherwise, alert error and do nothing.
+      */
+      if (er) {
+        console.log(er);
+      } else {
+        npm.commands.test("package.json", function (er) {
+          /*
+          *  if passed the test, write back to package.json.
+          *  otherwise, reinstall by package.json.
+          */
+          if (er) {
+            console.log(er);
+            /*  (I'm not really sure about the situation,
+            *   that when i testing another module, it will be possible unpassed
+            *   test because of last problematic moduel.
+            */
+            npm.commands.install(["", ""]);
+          } else {
+            console.log("OK!");
+            pkg.dependencies[lib] = version;
+            fs.writeFileSync("package.json", JSON.stringify(pkg), 'utf8');
+          }
+        });
+        console.log(data);
+      }
+    });
+  });
+}
