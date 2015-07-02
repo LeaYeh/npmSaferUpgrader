@@ -7,6 +7,7 @@ var colors = require('colors');
 var cmpVer = require('compare-version');
 var spawn = require('child_process').spawn;
 var msg;
+var semver = require('semver');
 
 colors.setTheme({
   prompt: 'cyan',
@@ -105,7 +106,10 @@ function checkVer(lib, version) {
 function findRelatedVer(currentVer, versions) {
 //  cmpVer(currentVer,)
 }
-
+function findCompatibleVer(currentVer, versions) {
+  console.log("Competible Version: ".prompt + semver.maxSatisfying(versions, currentVer));
+  return semver.maxSatisfying(versions, currentVer);
+}
 //Should also handle devDependencies in future
 if (depCount) {
   var dep;
