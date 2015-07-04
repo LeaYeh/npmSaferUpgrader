@@ -8,6 +8,7 @@ var cmpVer = require('compare-version');
 var spawn = require('child_process').spawn;
 var msg;
 var semver = require('semver');
+var nspAPI = require('nsp-api');
 
 colors.setTheme({
   prompt: 'cyan',
@@ -109,6 +110,13 @@ function findRelatedVer(currentVer, versions) {
 function findCompatibleVer(currentVer, versions) {
   console.log("Competible Version: ".prompt + semver.maxSatisfying(versions, currentVer));
   return semver.maxSatisfying(versions, currentVer);
+}
+function saferVersion(model, version) {
+  nspAPI.validateModule(model, version, function (err, results) {
+    if (results !== '') {
+      console.log(results);
+    }
+  });
 }
 //Should also handle devDependencies in future
 if (depCount) {
