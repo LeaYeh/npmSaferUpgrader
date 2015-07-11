@@ -65,6 +65,11 @@ function checkVer(lib, version) {
       for (ver in temp) {
         versions.push(ver);
       }
+      var safeVersions = new Array();
+      for (ver in versions) {
+        console.log(saferVersion('yar', versions[ver], safeVersions));
+        console.log(safeVersions);
+      }
       console.log("versions: ".prompt + colors.bold(versions));
       console.log("The latest version: ".prompt + colors.bold(versions[versions.length - 1]));
       var needUpdate = (cmpVer(versions[versions.length - 1], version) > 0 ? true : false);
@@ -111,12 +116,14 @@ function findCompatibleVer(currentVer, versions) {
   console.log("Competible Version: ".prompt + semver.maxSatisfying(versions, currentVer));
   return semver.maxSatisfying(versions, currentVer);
 }
-function saferVersion(model, version) {
-  nspAPI.validateModule(model, version, function (err, results) {
-    if (results !== '') {
-      console.log(results);
-    }
-  });
+function saferVersion(model,version,safeVersions) {
+    nspAPI.validateModule(model, version, function (err, results) {
+      if (results == '') {
+        safeVersions.push(version);
+        console.log('in:'+safeVersions);
+      }
+    });
+    console.log('out:'+safeVersions);
 }
 //Should also handle devDependencies in future
 if (depCount) {
