@@ -123,13 +123,13 @@ if (depCount) {
 
 function testLibVersion(lib, version) {
   npm.load("", function (er) {
-    var module = null;
+    var module = lib + "@" + version;
 
     if (er) {
       /* loading error */
       console.log(er);
     }
-    npm.commands.install([module, ""], function (er, data) {
+    npm.commands.install([module], function (er, data) {
       /*
       *  install module succeeded, then go testing.
       *  otherwise, alert error and do nothing.
@@ -148,11 +148,13 @@ function testLibVersion(lib, version) {
             *   that when i testing another module, it will be possible unpassed
             *   test because of last problematic moduel.
             */
-            npm.commands.install(["", ""]);
+            npm.commands.install([""]);
           } else {
             console.log("OK!");
-            pkg.dependencies[lib] = version;
-            fs.writeFileSync("package.json", JSON.stringify(pkg), 'utf8');
+            // set install with --save
+            npm.config.set('save', true);
+            npm.commands.install([module]);
+            npm.config.set('save', false);
           }
         });
         console.log(data);
