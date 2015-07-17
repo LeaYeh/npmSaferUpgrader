@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+var nspAPI = require('nsp-api');
 var fs = require('fs');
 var npm = require("npm");
 var request = require('request');
@@ -160,5 +161,19 @@ function testLibVersion(lib, version) {
         console.log(data);
       }
     });
+  });
+}
+
+function saferVersion(model, version, callback) {
+  nspAPI.validateModule(model, version, function (err, results) {
+    if (err) {
+      // An error generated from the underlying request.
+      console.log(err);
+    } else if (results.length !== 0) {
+      console.log("in func : %j", results);
+      return callback(false);
+    } else {
+      return callback(true);
+    }
   });
 }
