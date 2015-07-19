@@ -9,6 +9,7 @@ var cmpVer = require('compare-version');
 var spawn = require('child_process').spawn;
 var msg;
 var semver = require('semver');
+var async  = require('async');
 
 colors.setTheme({
   prompt: 'cyan',
@@ -51,7 +52,7 @@ console.log(msg.prompt);
 
 var deps = [];
 var depsVer = [];
-
+var safeVersions = [];
 
 function checkVer(lib, version) {
   version = pkg.dependencies[lib];
@@ -65,6 +66,34 @@ function checkVer(lib, version) {
       for (ver in temp) {
         versions.push(ver);
       }
+      //var safeVersions = new Array();
+      // to make sure array:safeVersions is empty.
+      //safeVersions.splice(0, safeVersions.length);
+      
+      //var tmpLib = 'yar';
+      async.eachSeries(versions,
+        function (item, callback) {
+          findSaferVersion(lib, item, function(res) {
+            //console.log(item + " : " + res);
+            //var tmpArr = [];
+            if (res) {
+              safeVersions.push(item);
+              //console.log(item);
+              //tmpArr.push(item);
+              //console.log("safeVersions : " + safeVersions);
+            }
+            callback();
+          });
+          //callback();
+        }, function done(err) {
+          if (err) {
+            throw err;
+          }
+          console.log("find safeVersions with lib = " + lib + "@" + safeVersions);
+          console.log("safeVersion done.");
+        }
+      );
+      //console.log("safeVersions : " + safeVersions);
       console.log("versions: ".prompt + colors.bold(versions));
       console.log("The latest version: ".prompt + colors.bold(versions[versions.length - 1]));
       var needUpdate = (cmpVer(versions[versions.length - 1], version) > 0 ? true : false);
@@ -114,12 +143,30 @@ function findCompatibleVer(currentVer, versions) {
 //Should also handle devDependencies in future
 if (depCount) {
   var dep;
+  
   for (dep in pkg.dependencies) {
     console.log(colors.info(' - ' + dep + ': ') + colors.bold(pkg.dependencies[dep]));
     deps.push(dep);
     depsVer.push(pkg.dependencies[dep]);
     checkVer(dep, pkg.dependencies[dep]);
+    
+    //break;
   }
+  /*async.eachSeries(pkg.dependencies,
+    function (item, callback) {
+      console.log(colors.info(' - ' + item + ': ') + colors.bold(pkg.dependencies[item]));
+      deps.push(item);
+      depsVer.push(pkg.dependencies[item]);
+      checkVer(dep, pkg.dependencies[item]);
+      callback();
+    },
+    function done(err) {
+      if (err) {
+        throw err;
+      }
+      console.log("checkVer done.");
+    }
+  );*/
 }
 
 function testLibVersion(lib, version) {
@@ -162,13 +209,13 @@ function testLibVersion(lib, version) {
   });
 }
 
-function saferVersion(model, version, callback) {
+function findSaferVersion(model, version, callback) {
   nspAPI.validateModule(model, version, function (err, results) {
     if (err) {
       // An error generated from the underlying request.
       console.log(err);
     } else if (results.length !== 0) {
-      console.log("in func : %j", results);
+      //console.log("in func : %j", results);
       return callback(false);
     } else {
       return callback(true);
