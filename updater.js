@@ -54,34 +54,47 @@ var deps = [];
 var depsVer = [];
 var safeVersions = [];
 
+function findSaferVersion(model, version, callback) {
+  nspAPI.validateModule(model, version, function (err, results) {
+    if (err) {
+      // An error generated from the underlying request.
+      console.log(err);
+    } else if (results.length !== 0) {
+      //console.log("in func : %j", results);
+      return callback(false);
+    }
+    else {
+      return callback(true);
+    }
+  });
+}
 function checkVer(lib, version) {
   request.get('http://registry.npmjs.org/' + lib, function (error, response, body) {
     async.series([
-      function step1 (callback_step1) {
+      function step1(callback_step1) {
         msg = "\nChecking verion of " + lib + ", current: ";
         console.log(msg.prompt + colors.yellow(version));
         callback_step1();
       },
-      function step2 (callback_step2) {
+      function step2(callback_step2) {
         if (!error && response.statusCode === 200) {
           var versions = [], ver;
           for (ver in JSON.parse(body).versions) {
             versions.push(ver);
           }
           async.series([
-            function getSaferVer (callback_safer) {
+            function getSaferVer(callback_safer) {
               // make sure safeVersions is empty
               safeVersions.splice(0, safeVersions.length);
-              async.eachSeries(versions, 
+              async.eachSeries(versions,
                 function (item, callback_each) {
-                  findSaferVersion(lib, item, function(res) {
+                  findSaferVersion(lib, item, function (res) {
                     if (res) {
                       safeVersions.push(item);
                     }
                     callback_each();
                   });
-                }, 
-                function done(err) {
+                }, function done(err) {
                   if (err) {
                     throw err;
                   }
@@ -91,7 +104,7 @@ function checkVer(lib, version) {
                 }
               );
             },
-            function insatllAndShowMsg (callback_install) {
+            function insatllAndShowMsg(callback_install) {
               console.log("versions: ".prompt + colors.bold(versions));
               console.log("The latest version: ".prompt + colors.bold(versions[versions.length - 1]));
               var needUpdate = (cmpVer(versions[versions.length - 1], version) > 0 ? true : false);
@@ -137,9 +150,9 @@ function findCompatibleVer(currentVer, versions) {
 }
 //Should also handle devDependencies in future
 if (depCount) {
-  var dep;
+  var key;
   var module_dep = [];
-  var c = 0
+  var c = 0;
   for (key in pkg.dependencies) {
     module_dep.push(key + "@" + pkg.dependencies[key]); 
     //if(c == 1) break;
@@ -212,19 +225,5 @@ function testLibVersion(lib, version) {
         console.log(data);
       }
     });
-  });
-}
-
-function findSaferVersion(model, version, callback) {
-  nspAPI.validateModule(model, version, function (err, results) {
-    if (err) {
-      // An error generated from the underlying request.
-      console.log(err);
-    } else if (results.length !== 0) {
-      //console.log("in func : %j", results);
-      return callback(false);
-    } else {
-      return callback(true);
-    }
   });
 }
