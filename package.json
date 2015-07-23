@@ -10,6 +10,7 @@
     "colors": "1.1.0",
     "compare-version": "^0.1.1",
     "npm": "^2.10.1",
+    "nsp-api": "^1.0.3",
     "request": "^2.55.0"
   },
   "devDependencies": {
