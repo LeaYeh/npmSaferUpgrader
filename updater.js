@@ -79,7 +79,7 @@ function checkVer(libs, versions) {
     // you have a zero length array
     return;
   }
-  request.get('http://registry.npmjs.org/' + lib, function (error, response, body) {
+  request.get('http://registry.npmjs.org/' + lib, function (error, response, body, callback_req) {
     async.series([
       function step1(callback_step1) {
         msg = "\nChecking verion of " + lib + ", current: ";
@@ -146,13 +146,12 @@ function checkVer(libs, versions) {
           ]);
         }
         callback_step2();
-      }/*,
+      },
       function call_next(callback_next) {
         checkVer(libs, versions);
         callback_next();
-      }*/
+      }
     ]);
-    callback();
   });
 }
 
