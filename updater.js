@@ -68,7 +68,17 @@ function findSaferVersion(model, version, callback) {
     }
   });
 }
-function checkVer(lib, version) {
+function checkVer(libs, versions) {
+  var lib = libs.shift();
+  var version = versions.shift();
+
+  if(typeof libs === 'undefined' || typeof versions === 'undefined') {
+    // it is not defined yet
+    return;
+  } else if (libs.length <= 0 || versions.length <= 0) {
+    // you have a zero length array
+    return;
+  }
   request.get('http://registry.npmjs.org/' + lib, function (error, response, body) {
     async.series([
       function step1(callback_step1) {
@@ -136,8 +146,13 @@ function checkVer(lib, version) {
           ]);
         }
         callback_step2();
-      }
+      }/*,
+      function call_next(callback_next) {
+        checkVer(libs, versions);
+        callback_next();
+      }*/
     ]);
+    callback();
   });
 }
 
@@ -153,20 +168,19 @@ if (depCount) {
   var key;
   var module_dep = [];
   var c = 0;
+  
   for (key in pkg.dependencies) {
     module_dep.push(key + "@" + pkg.dependencies[key]); 
     //if(c == 1) break;
     //c++;
   }
-  /*for (dep in pkg.dependencies) {
+  for (dep in pkg.dependencies) {
     console.log(colors.info(' - ' + dep + ': ') + colors.bold(pkg.dependencies[dep]));
     deps.push(dep);
     depsVer.push(pkg.dependencies[dep]);
-    checkVer(dep, pkg.dependencies[dep]);
-    
-    break;
-  }*/
-  async.eachSeries(module_dep,
+  }
+  checkVer(deps, depsVer);
+  /*async.eachSeries(module_dep,
     function (item, callback) {
       var lib = item.split("@")[0];
       var ver = item.split("@")[1];
@@ -185,7 +199,7 @@ if (depCount) {
       }
       console.log("checkVer done.");
     }
-  );
+  );*/
 }
 
 function testLibVersion(lib, version) {
