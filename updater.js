@@ -67,7 +67,6 @@ function findSaferVersion(model, version, callback) {
     }
   });
 }
-
 function checkVer(libs, versions) {
   var lib = libs.shift();
   var version = versions.shift();
@@ -166,12 +165,17 @@ function findCompatibleVer(currentVer, versions) {
 //Should also handle devDependencies in future
 if (depCount) {
   var dep;
+  var module_dep = [];
+
+  for (key in pkg.dependencies) {
+    module_dep.push(key + "@" + pkg.dependencies[key]); 
+  }
   for (dep in pkg.dependencies) {
     console.log(colors.info(' - ' + dep + ': ') + colors.bold(pkg.dependencies[dep]));
     deps.push(dep);
     depsVer.push(pkg.dependencies[dep]);
-    checkVer(dep, pkg.dependencies[dep]);
   }
+  checkVer(deps, depsVer);
 }
 
 function testLibVersion(lib, version) {
