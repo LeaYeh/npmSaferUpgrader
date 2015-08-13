@@ -9,6 +9,7 @@ var cmpVer = require('compare-version');
 var spawn = require('child_process').spawn;
 var msg;
 var semver = require('semver');
+var async  = require('async');
 
 colors.setTheme({
   prompt: 'cyan',
