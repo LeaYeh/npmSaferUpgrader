@@ -95,8 +95,10 @@ function checkVer(libs, versions) {
             function getSaferVer(callback_safer) {
               // make sure safeVersions is empty
               safeVersions.splice(0, safeVersions.length);
+              console.log("finding safer version...".warn);
               async.eachSeries(versions,
                 function (item, callback_each) {
+                  console.log("checking version :".warn + item.warn);
                   findSaferVersion(lib, item, function (res) {
                     if (res) {
                       safeVersions.push(item);
@@ -123,6 +125,8 @@ function checkVer(libs, versions) {
                 pkg.dependencies[lib] = newVer;
                 /* bad implement ... for prototype only npm install start */
                 var npmInstall = spawn('npm', ['install', lib + '@' + newVer, '--save']);
+
+                console.log("installing needed module...".warn);
                 npmInstall.on('close', function (code) {
                   if (!code) {
                     var npmUpdate = spawn('npm', ['update', lib]);
