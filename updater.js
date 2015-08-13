@@ -68,59 +68,94 @@ function findSaferVersion(model, version, callback) {
   });
 }
 
+function checkVer(libs, versions) {
+  var lib = libs.shift();
+  var version = versions.shift();
 
-
-function checkVer(lib, version) {
-  version = pkg.dependencies[lib];
+  if(typeof libs === 'undefined' || typeof versions === 'undefined') {
+    // it is not defined yet
+    return;
+  } else if (libs.length <= 0 || versions.length <= 0) {
+    // you have a zero length array
+    return;
+  }
   request.get('http://registry.npmjs.org/' + lib, function (error, response, body) {
-    msg = "\nChecking verion of " + lib + ", current: ";
-    console.log(msg.prompt + colors.yellow(version));
-    if (!error && response.statusCode === 200) {
-      var versions = [],
-        temp = JSON.parse(body).versions,
-        ver;
-      for (ver in temp) {
-        versions.push(ver);
-      }
-      console.log("versions: ".prompt + colors.bold(versions));
-      console.log("The latest version: ".prompt + colors.bold(versions[versions.length - 1]));
-      var needUpdate = (cmpVer(versions[versions.length - 1], version) > 0 ? true : false);
-      console.log(colors.info((needUpdate ? colors.bold("Need") : "No need") + " to update!"));
-      if (needUpdate) {
-        var newVer = updateLib(lib, version, versions);
-        pkg.dependencies[lib] = newVer;
-        /* bad implement ... for prototype only npm install start */
-        var npmInstall = spawn('npm', ['install', lib + '@' + newVer, '--save']);
-        npmInstall.on('close', function (code) {
-          if (!code) {
-            var npmUpdate = spawn('npm', ['update', lib]);
-            npmUpdate.on('close', function (code2) {
-              if (!code2) {
-                msg = "Dependency - " + lib + " upgaded to v" + newVer + " successfully!";
-              } else {
-                msg = "Dependency - " + lib + " v" + newVer + " has been installed, but update process failed! " + code2;
-              }
-              console.log(colors.prompt(msg));
-            });
-          } else {
-            console.log(colors.error("Dependency - " + lib + " upgrade failed! exit code: " + code));
-            console.log(colors.error("This may not make sense 'cause this is just the final step, please open an issue on GitHub"));
+    async.series([
+      function step1(callback_step1) {
+        msg = "\nChecking verion of " + lib + ", current: ";
+        console.log(msg.prompt + colors.yellow(version));
+        callback_step1();
+      },
+      function step2(callback_step2) {
+        if (!error && response.statusCode === 200) {
+          var versions = [], ver;
+          for (ver in JSON.parse(body).versions) {
+            versions.push(ver);
           }
-        });
-        /* the dirty part above should be replced by the confirmed and fixed version below */
-      /*npm.load(function() {
-          //not sure if npm api support this usage like npm command, need to be confirmed
-          npm.commands.install(lib + "@" + newVer, function(res){
-            console.log(res);
-          );
-          npm.commands.update([lib], function(res){
-            console.log(res);
-          })
-        })*/
-      }
-    }
+          async.series([
+            function getSaferVer(callback_safer) {
+              // make sure safeVersions is empty
+              safeVersions.splice(0, safeVersions.length);
+              async.eachSeries(versions,
+                function (item, callback_each) {
+                  findSaferVersion(lib, item, function (res) {
+                    if (res) {
+                      safeVersions.push(item);
+                    }
+                    callback_each();
+                  });
+                }, function done(err) {
+                  if (err) {
+                    throw err;
+                  }
+                  console.log("find safeVersions with lib = " + lib + "@" + safeVersions);
+                  console.log("safeVersion done.");
+                  callback_safer();
+                }
+              );
+            },
+            function insatllAndShowMsg(callback_install) {
+              console.log("versions: ".prompt + colors.bold(versions));
+              console.log("The latest version: ".prompt + colors.bold(versions[versions.length - 1]));
+              var needUpdate = (cmpVer(versions[versions.length - 1], version) > 0 ? true : false);
+              console.log(colors.info((needUpdate ? colors.bold("Need") : "No need") + " to update!"));
+              if (needUpdate) {
+                var newVer = updateLib(lib, version, versions);
+                pkg.dependencies[lib] = newVer;
+                /* bad implement ... for prototype only npm install start */
+                var npmInstall = spawn('npm', ['install', lib + '@' + newVer, '--save']);
+                npmInstall.on('close', function (code) {
+                  if (!code) {
+                    var npmUpdate = spawn('npm', ['update', lib]);
+                    npmUpdate.on('close', function (code2) {
+                      if (!code2) {
+                        msg = "Dependency - " + lib + " upgaded to v" + newVer + " successfully!";
+                      } else {
+                        msg = "Dependency - " + lib + " v" + newVer + " has been installed, but update process failed! " + code2;
+                      }
+                      console.log(colors.prompt(msg));
+                    });
+                  } else {
+                    console.log(colors.error("Dependency - " + lib + " upgrade failed! exit code: " + code));
+                    console.log(colors.error("This may not make sense 'cause this is just the final step, please open an issue on GitHub"));
+                  }
+                });
+              }
+              callback_install();
+            },
+            function call_next(callback_next) {
+              checkVer(libs, versions);
+              callback_next();
+            }
+          ]);
+        }
+        callback_step2();
+      },
+      
+    ]);
   });
 }
+
 function findRelatedVer(currentVer, versions) {
 //  cmpVer(currentVer,)
 }
